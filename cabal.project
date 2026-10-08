@@ -1,0 +1,4 @@
+packages: .
+
+import: stackage/lts-24.56.config
+with-compiler: ghc-9.10.3

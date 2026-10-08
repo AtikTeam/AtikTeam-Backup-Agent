@@ -1,0 +1,83 @@
+cabal-version:      3.4
+name:               atikteam-backup-agent
+version:            1.3.0.0
+synopsis:           Backup agent for AtikTeam project management system
+license:            GPL-3.0-or-later
+license-file:       LICENSE
+author:             Paul Rivier - Demotera
+maintainer:         Paul Rivier - Demotera
+copyright:          Demotera
+build-type:         Simple
+extra-source-files: CHANGELOG.md
+                    README.md
+                    static/atikteam.png
+                    static/javascript.js
+                    static/stylesheet.css
+
+common shared
+  default-language:   GHC2021
+  default-extensions: LambdaCase
+                      OverloadedStrings
+  ghc-options:        -Wall -Wunused-packages
+                      -Werror=incomplete-patterns
+                      -Wcompat
+                      -Wredundant-constraints
+
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Backup.CLI
+                    Backup.DB
+                    Backup.Env
+                    Backup.Form
+                    Backup.Maintenance
+                    Backup.Messages
+                    Backup.Migrations
+                    Backup.Retrieve
+                    Backup.Server
+                    Backup.Static
+                    Backup.Time
+                    Backup.Types
+                    Backup.Views
+  build-depends:    aeson
+                  , base >=4.18 && <5
+                  , blaze-html
+                  , bytestring
+                  , case-insensitive
+                  , containers
+                  , directory
+                  , file-embed
+                  , filepath
+                  , http-client
+                  , http-types
+                  , optparse-applicative
+                  , safe-exceptions
+                  , text
+                  , time
+                  , wai
+                  , warp
+
+executable atikteam-backup-agent
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  other-modules:    Paths_atikteam_backup_agent
+  autogen-modules:  Paths_atikteam_backup_agent
+  ghc-options:      -threaded
+  build-depends:    atikteam-backup-agent
+                  , async
+                  , base
+                  , http-client-tls
+                  , text
+
+test-suite spec
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    atikteam-backup-agent
+                  , aeson
+                  , base
+                  , hspec
+                  , time

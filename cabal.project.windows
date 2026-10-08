@@ -1,0 +1,12 @@
+import: cabal.project
+
+package *
+  split-sections: False
+  executable-static: True
+  -- Désactiver explicitement les bibliothèques partagées
+  shared: False
+  executable-dynamic: False
+  optimization: 1
+  ghc-options:
+    -static
+
