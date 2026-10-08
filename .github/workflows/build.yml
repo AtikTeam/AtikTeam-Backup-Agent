@@ -22,7 +22,7 @@ on:
 
 env:
   GHC_VERSION: 9.10.3
-  EXE: atikteam-backup-client
+  EXE: atikteam-backup-agent
 
 jobs:
   linux:
