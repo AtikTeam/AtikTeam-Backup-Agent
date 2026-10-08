@@ -1,0 +1,126 @@
+# Builds the release binaries, on demand only: Actions tab → "Build binaries"
+# → "Run workflow" (or: gh workflow run build.yml -f target=all).
+#
+# - Linux:   static binary (musl), in the same Alpine image as build-static.sh,
+#            with cabal.project.release
+# - Windows: native build with GHC from ghcup, with cabal.project.windows
+#
+# The binaries are attached to the run as artifacts (Summary page of the run).
+# The compiled dependencies are cached between runs, so only the first run
+# compiles everything.
+
+name: Build binaries
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Platforms to build
+        type: choice
+        options: [all, linux, windows]
+        default: all
+
+env:
+  GHC_VERSION: 9.10.3
+  EXE: atikteam-backup-agent
+
+jobs:
+  linux:
+    if: inputs.target == 'all' || inputs.target == 'linux'
+    runs-on: ubuntu-latest
+    container: docker.io/benz0li/ghc-musl:9.10.3-int-native
+    env:
+      CABAL_DIR: /cabal
+      PROJECT_FILE: cabal.project.release
+      BUILD_DIR: dist-musl
+    steps:
+      # git for checkout, GNU tar and zstd for actions/cache, file for the check
+      - name: Install tools
+        run: apk add --no-cache git tar zstd file
+
+      - uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        run: echo "version=$(awk 'tolower($1) == "version:" { print $2; exit }' "$EXE.cabal")" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cabal store
+        uses: actions/cache@v4
+        with:
+          path: /cabal/store
+          key: linux-musl-${{ env.GHC_VERSION }}-${{ hashFiles('*.cabal', 'cabal.project*', 'stackage/*') }}
+          restore-keys: linux-musl-${{ env.GHC_VERSION }}-
+
+      - name: Update package index
+        run: cabal update
+
+      - name: Build dependencies
+        run: cabal build --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" --only-dependencies "exe:$EXE"
+
+      - name: Build
+        run: cabal build --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" "exe:$EXE"
+
+      - name: Collect binary
+        run: |
+          mkdir -p out
+          target="out/$EXE-${{ steps.version.outputs.version }}-linux-x86_64"
+          cp "$(cabal list-bin --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" "exe:$EXE")" "$target"
+          strip "$target"
+          file "$target" | tee /dev/stderr | grep -Eq 'statically linked|static-pie linked'
+          cd out && sha256sum -- * > SHA256SUMS-linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXE }}-${{ steps.version.outputs.version }}-linux-x86_64
+          path: out/*
+          if-no-files-found: error
+
+  windows:
+    if: inputs.target == 'all' || inputs.target == 'windows'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      PROJECT_FILE: cabal.project.windows
+      BUILD_DIR: dist-newstyle
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GHC and cabal
+        id: setup
+        uses: haskell-actions/setup@v2
+        with:
+          ghc-version: ${{ env.GHC_VERSION }}
+          cabal-version: latest
+
+      - name: Read version
+        id: version
+        run: echo "version=$(awk 'tolower($1) == "version:" { print $2; exit }' "$EXE.cabal")" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cabal store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.setup.outputs.cabal-store }}
+          key: windows-${{ env.GHC_VERSION }}-${{ hashFiles('*.cabal', 'cabal.project*', 'stackage/*') }}
+          restore-keys: windows-${{ env.GHC_VERSION }}-
+
+      - name: Build dependencies
+        run: cabal build --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" --only-dependencies "exe:$EXE"
+
+      - name: Build
+        run: cabal build --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" "exe:$EXE"
+
+      - name: Collect binary
+        run: |
+          mkdir -p out
+          # cabal prints a Windows path: convert it for the bash of Git for Windows
+          bin="$(cabal list-bin --project-file="$PROJECT_FILE" --builddir="$BUILD_DIR" "exe:$EXE")"
+          cp "$(cygpath -u "$bin")" "out/$EXE-${{ steps.version.outputs.version }}-windows-x86_64.exe"
+          cd out && sha256sum -- * > SHA256SUMS-windows
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXE }}-${{ steps.version.outputs.version }}-windows-x86_64
+          path: out/*
+          if-no-files-found: error
