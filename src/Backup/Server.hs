@@ -1,9 +1,5 @@
 -- | HTTP server: browsing of the backups and settings.
 --
--- > /                                  list of applications, add one
--- > /NAME                              snapshots of an application, settings
--- > /NAME/SNAPSHOT/path/to/file        backed-up file
--- > /_/...                             static files and actions
 module Backup.Server
   ( Config (..)
   , run
@@ -40,7 +36,6 @@ data Config = Config
   { cfgHost :: String
   , cfgPort :: Int
   , cfgStaticDir :: Maybe FilePath
-  -- ^ serve the static files from this directory instead of the embedded ones
   }
 
 -- | Files of a snapshot, indexed by their path in the backed-up site.
@@ -52,7 +47,6 @@ data Server = Server
   , srvRequestBackup :: IO ()
   , srvRequestExit :: IO ()
   , srvCache :: IORef (Maybe ((InstanceName, SnapshotId), Files))
-  -- ^ index of the last snapshot browsed (a snapshot never changes)
   }
 
 type Handler = Wai.Request -> IO Wai.Response
@@ -146,7 +140,7 @@ exit server = do
   srvRequestExit server
   page server Http.status200 Views.stopping
 
--- Snapshot index ------------------------------------------------------------
+-- Snapshot index 
 
 -- | Files of a snapshot, or 'Nothing' if that snapshot does not exist.
 snapshotFiles :: Server -> InstanceName -> SnapshotId -> IO (Maybe Files)
@@ -170,7 +164,7 @@ snapshotFiles server name snapshot = do
       )
     toHeaders = map (bimap (CI.mk . TE.encodeUtf8) TE.encodeUtf8)
 
--- Utilities -----------------------------------------------------------------
+-- Utilities 
 
 rootDir :: Server -> FilePath
 rootDir = envRoot . srvEnv

@@ -23,12 +23,9 @@ import System.IO (Handle)
 -- | Takes a new snapshot: downloads the sitemap, then the files that are not
 -- yet in the database, and saves the sitemap last.
 --
--- The sitemap is only saved if all the files were obtained: a snapshot that
--- exists is therefore always complete, and a failure is retried at the next
--- cycle (files already downloaded are kept).
+-- Atomicity : the sitemap is only saved if all the files were
+-- downloaded: a snapshot that exists is therefore always complete.
 --
--- HTTP error statuses (anything but 2xx) raise an exception: this is the
--- default behavior of http-client.
 snapshotInstance :: Env -> InstanceName -> InstanceConf -> IO ()
 snapshotInstance env name conf = do
   let root = envRoot env

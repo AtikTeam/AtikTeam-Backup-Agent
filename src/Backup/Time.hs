@@ -4,6 +4,7 @@
 -- format that sorts chronologically and contains no character that is
 -- forbidden in Windows file names. The format is the one used since the first
 -- version, so existing databases need no migration.
+-- TODO : merge into an utility module
 module Backup.Time
   ( getLocalTime
   , snapshotName

@@ -1,8 +1,5 @@
 -- | Domain types and their on-disk JSON representation.
 --
--- The JSON format of the @config@ files and of the sitemaps is the same as in
--- previous versions. Unknown keys (such as the old @secure@ field) are ignored
--- when reading.
 module Backup.Types
   ( -- * Applications
     InstanceName
@@ -32,9 +29,8 @@ import Data.Time (DayOfWeek (..), LocalTime)
 -- URL segment: values coming from outside must pass 'isValidInstanceName'.
 type InstanceName = Text
 
--- | ASCII letters, digits, @.@, @-@ and @_@ only, and no leading dot. This is
--- a valid directory name on Linux and Windows, and needs no URL encoding. The
--- name @_@ is reserved for the administration URLs.
+-- | ASCII letters, digits, [.-_], and no leading dot. This is a valid
+-- directory name on Linux and Windows, and needs no URL encoding.
 isValidInstanceName :: Text -> Bool
 isValidInstanceName name =
   not (T.null name)

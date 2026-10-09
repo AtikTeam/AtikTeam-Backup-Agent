@@ -9,8 +9,7 @@
 -- >       resources /  ETAG ...   (content of the backed-up files)
 -- >       sitemaps /   DATE ...   (JSON, one per snapshot, see "Backup.Time")
 --
--- Every function takes the database root as its first argument and throws an
--- IO exception on failure (missing file, unreadable JSON).
+
 module Backup.DB
   ( getSystemDbRootDir
   , instancesDir
@@ -59,7 +58,7 @@ import System.IO (IOMode (WriteMode), Handle, withBinaryFile)
 getSystemDbRootDir :: IO FilePath
 getSystemDbRootDir = (</> "backup") <$> getAppUserDataDirectory "AtikTeam"
 
--- Paths ---------------------------------------------------------------------
+-- Paths
 
 instancesDir :: FilePath -> FilePath
 instancesDir root = root </> "instances"
@@ -85,7 +84,7 @@ resourcePath root name etag = resourcesDir root name </> T.unpack etag
 languageFile :: FilePath -> FilePath
 languageFile root = root </> "language"
 
--- Applications --------------------------------------------------------------
+-- Applications 
 
 listInstances :: FilePath -> IO [InstanceName]
 listInstances root = do
@@ -105,7 +104,7 @@ loadInstance root name = readJson (configFile root name)
 saveInstance :: FilePath -> InstanceName -> InstanceConf -> IO ()
 saveInstance root name = writeJson (configFile root name)
 
--- Snapshots -----------------------------------------------------------------
+-- Snapshots 
 
 -- | Snapshots of an application, most recent first. Files whose name is not a
 -- snapshot name are ignored.
@@ -122,7 +121,7 @@ saveSiteMap root name snapshot = writeJson (sitemapFile root name snapshot)
 deleteSnapshot :: FilePath -> InstanceName -> SnapshotId -> IO ()
 deleteSnapshot root name snapshot = removeFile (sitemapFile root name snapshot)
 
--- Resources -----------------------------------------------------------------
+-- Resources
 
 -- | Etags of the files present in the database.
 listResources :: FilePath -> InstanceName -> IO (Set.Set Etag)
@@ -145,7 +144,7 @@ garbageCollect root name = do
   pure (map T.unpack garbage)
 
 
--- Settings ------------------------------------------------------------------
+-- Settings 
 
 -- | Language of the web interface: English unless another one was chosen.
 loadLanguage :: FilePath -> IO Lang
@@ -160,7 +159,7 @@ saveLanguage :: FilePath -> Lang -> IO ()
 saveLanguage root lang =
   writeAtomic (languageFile root) (\tmp -> B.writeFile tmp (TE.encodeUtf8 (langCode lang)))
 
--- Files ---------------------------------------------------------------------
+-- Files 
 
 readJson :: FromJSON a => FilePath -> IO a
 readJson path =

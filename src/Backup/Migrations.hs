@@ -1,6 +1,5 @@
 -- | Migrations of the database format.
---
--- 1. creation of the @instances@ directory
+
 module Backup.Migrations (migrate) where
 
 import qualified Backup.DB as DB

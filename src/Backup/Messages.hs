@@ -1,11 +1,7 @@
 -- | Texts of the web interface, in every supported language.
 --
 -- Each text is a constructor of 'Msg', and each language is a function from
--- 'Msg' to 'Text'. Because incomplete patterns are errors in this module,
--- adding a constructor (or a language) without translating it does not compile.
---
--- To add a language: add a constructor to 'Lang', then complete 'langCode',
--- 'langName' and 'render' (the compiler lists what is missing).
+-- 'Msg' to 'Text'. 
 module Backup.Messages
   ( Lang (..)
   , langCode
@@ -22,8 +18,8 @@ import Data.Time (DayOfWeek (..), LocalTime, defaultTimeLocale, formatTime)
 data Lang = English | French
   deriving (Eq, Show, Enum, Bounded)
 
--- | Code stored in the database and used in forms and in the HTML @lang@
--- attribute.
+-- | stored as a file in the database and used in forms and in the
+-- HTML @lang@ attribute.
 langCode :: Lang -> Text
 langCode = \case
   English -> "en"

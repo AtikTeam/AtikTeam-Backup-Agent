@@ -1,6 +1,5 @@
--- | HTML pages of the web interface. Every visible text comes from
--- "Backup.Messages", so that pages exist in all supported languages. The
--- markup is styled by @static/stylesheet.css@.
+-- | HTML pages of the web interface. Translations come from
+-- "Backup.Messages"
 module Backup.Views
   ( rootPage
   , instancePage
@@ -29,7 +28,7 @@ pathTo segments = "/" <> T.intercalate "/" (map encode segments)
   where
     encode = TE.decodeUtf8 . urlEncode False . TE.encodeUtf8
 
--- Pages ---------------------------------------------------------------------
+-- Pages 
 
 rootPage :: Lang -> [InstanceName] -> Html
 rootPage lang names = layout lang $ do
@@ -120,7 +119,7 @@ errorPage lang err = layout lang $ do
 stopping :: Lang -> Html
 stopping lang = layout lang $ H.h1 (msg lang MsgStopping)
 
--- Layout --------------------------------------------------------------------
+-- Layout
 
 layout :: Lang -> Html -> Html
 layout lang content = H.docTypeHtml ! A.lang (H.toValue (langCode lang)) $ do
@@ -149,7 +148,7 @@ languageSelector current =
         ! (if lang == current then A.disabled "disabled" else mempty)
         $ H.toHtml (langName lang)
 
--- Utilities -----------------------------------------------------------------
+-- Utilities 
 
 msg :: Lang -> Msg -> Html
 msg lang = H.toHtml . render lang

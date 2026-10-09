@@ -1,6 +1,3 @@
-/* Stylesheet of the AtikTeam Backup web interface.
-  Plain CSS, no framework. The markup is in src/Backup/Views.hs. */
-
 :root {
   --text: #1f2328;
   --muted: #656d76;
